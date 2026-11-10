@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use crate::renderer::*;
 use crate::saving::*;
-use crate::saving::save_game::SAVE_DIR;
+use crate::saving::save_game::save_dir;
 use crate::config_load::return_save_files;
 use super::vars::{ScreenSz};
 use super::fns::getmaxyxu;
@@ -122,7 +122,7 @@ impl <'f,'bt,'ut,'rt,'dt>DispState<'f,'_,'bt,'ut,'rt,'dt> {
 			macro_rules! load_game{() => {
 				// load most recently modified file
 				let save_files = return_save_files();
-				return GameControl::Load(format!("{}/{}", SAVE_DIR, save_files[0].nm));
+				return GameControl::Load(format!("{}/{}", save_dir(), save_files[0].nm));
 			};}
 			macro_rules! new_game{() => {return GameControl::NewOptions;};}
 			macro_rules! exit{() => {endwin(); exit(0);};}

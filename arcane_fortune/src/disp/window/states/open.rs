@@ -142,7 +142,7 @@ impl OpenWindowState {
 	
 	pub fn keys<'bt,'ut,'rt,'dt>(&mut self, game_control: &mut GameControl, dstate: &DispState<'_,'_,'bt,'ut,'rt,'dt>) -> UIModeControl<'bt,'ut,'rt,'dt> {
 		macro_rules! enter_action {($mode: expr) => {
-			*game_control = GameControl::Load(format!("{}/{}", SAVE_DIR, self.save_files[$mode].nm));
+			*game_control = GameControl::Load(format!("{}/{}", save_dir(), self.save_files[$mode].nm));
 			return UIModeControl::ChgGameControl;
 		};}
 		if let Some(ind) = dstate.buttons.list_item_clicked(&dstate.mouse_event) {	enter_action!(ind);}

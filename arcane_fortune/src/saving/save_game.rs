@@ -14,7 +14,7 @@ use crate::map::gen_utils::print_map_status;
 use crate::containers::*;
 use crate::localization::Localization;
 
-pub const SAVE_DIR: &str = "saves/";
+pub fn save_dir() -> String {crate::paths::save_dir()}
 
 #[derive(PartialEq)]
 pub enum SaveType {Auto, Manual} // if set to manual, name is pulled from iface_settings
@@ -72,13 +72,13 @@ pub fn save_game<'f,'bt,'ut,'rt,'dt>(save_type: SaveType, gstate: &GameState, ma
 		SaveType::Manual => {dstate.iface_settings.save_nm.clone()}
 	};
 	
-	if let Result::Ok(ref mut file) = File::create(Path::new(&format!("{}/{}", SAVE_DIR, file_nm)).as_os_str()) {
+	if let Result::Ok(ref mut file) = File::create(Path::new(&format!("{}/{}", save_dir(), file_nm)).as_os_str()) {
 		let mut wtr = snappy::write::FrameEncoder::new(file);
 		io::copy(&mut &buf[..], &mut wtr).expect("Saving compressed file failed");
 		/*if let Result::Err(_) = file.write_all(&buf) {
-			panicq!("failed writing file: {}/{}", SAVE_DIR, file_nm);
+			panicq!("failed writing file: {}/{}", save_dir(), file_nm);
 		}*/
-	}else {panicq!("failed opening file for writing: {}/{}", SAVE_DIR, file_nm);}
+	}else {panicq!("failed opening file for writing: {}/{}", save_dir(), file_nm);}
 	
 	///////// test that loading works of saved data
 	//#[cfg(any(feature="opt_debug", debug_assertions))]

@@ -12,13 +12,14 @@ build = "build.rs"
 profile = [] # timing
 fixed_seed = [] # fixed random seeds
 opt_debug = [] # debug assertions (allows them to be run even with `--release`)
-sdl = []
+sdl = ["sdl2_lib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 # [dependencies.'cfg(feature="sdl")'.sdl2_lib]
 [dependencies.sdl2_lib]
 path = "../sdl2_lib"
+optional = true
 #features = ["profile"]
 
 [dependencies.ironnetpro]

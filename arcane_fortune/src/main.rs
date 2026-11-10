@@ -32,6 +32,7 @@ mod localization;
 mod player;
 mod containers;
 mod scenarios;
+mod paths;
 
 use renderer::*;
 use map::*;
@@ -54,6 +55,7 @@ use containers::*;
 //use scenarios::*;
 
 fn main(){
+	paths::find_data_dir();
 	disp::show_version_status_console();
 	
 	let mut game_control = GameControl::TitleScreen;

@@ -12,7 +12,7 @@ use crate::disp::{ScreenSz, DispChars};
 use crate::units::*;
 use crate::tech::{TechTemplate};
 use crate::doctrine::DoctrineTemplate;
-use crate::saving::save_game::SAVE_DIR;
+use crate::saving::save_game::save_dir;
 use crate::resources::ResourceTemplate;
 use crate::saving::snappy;
 
@@ -78,7 +78,8 @@ pub struct SaveFile {
 
 // for open game window
 pub fn return_save_files() -> Vec<SaveFile> {
-	let sv_gms_dir = Path::new(SAVE_DIR);
+	let sv_gms_dir_s = save_dir();
+	let sv_gms_dir = Path::new(&sv_gms_dir_s);
 	
 	let mut save_files = Vec::new();
 	
@@ -99,7 +100,7 @@ pub fn return_save_files() -> Vec<SaveFile> {
 							elapsed: dur.as_secs()
 					});
 				}}}}}}}
-	} else {q!(format!("failed to open {}", SAVE_DIR));}
+	} else {q!(format!("failed to open {}", save_dir()));}
 	
 	save_files.sort_unstable_by(|a, b| b.elapsed.partial_cmp(&a.elapsed).unwrap());
 	

@@ -167,7 +167,7 @@ create_keys!(
 	backward_tab = "backward_tab"
 );
 
-use sdl2_lib::{KEY_UP, KEY_DOWN};
+use crate::renderer::{KEY_UP, KEY_DOWN};
 impl KeyboardMap {
 	// fast or slow up
 	pub fn up(&self, k: i32) -> bool {
