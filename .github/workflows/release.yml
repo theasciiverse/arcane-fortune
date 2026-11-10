@@ -1,4 +1,4 @@
-# Arcane Fortune: release
+# Arcane Fortune: release workflow
 # Asciiverse release workflow (tag v* or run by hand with a tag)
 # Builds Arcane Fortune's terminal edition for the Asciiverse catalog and as
 # system packages.
