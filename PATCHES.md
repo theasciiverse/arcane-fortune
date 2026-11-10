@@ -11,6 +11,13 @@ the terminal edition (ncurses, without the `sdl` feature). Upstream is the
 - **Builds with today's Rust.** The bundled snappy reader's `fail!` macro
   ended in a semicolon that Rust 1.93 rejects in expression position
   (`src/saving/snappy/read.rs`).
+- **Builds from any checkout, and on ARM64.** The version line's commit
+  was read at compile time from `.git/refs/heads/v0.4.0`, which only a
+  clone with that local branch has; `build.rs` now sets it from
+  `AF_COMMIT_ID`, else `git rev-parse HEAD`, else "unknown"
+  (`src/disp/version_status.rs`). The ncurses bindings took text as
+  `*const i8`, but C's `char` is unsigned on ARM64 Linux; they use
+  `c_char` now (`src/renderer/curses/direct_ncurses.rs`).
 - **The terminal build no longer needs SDL.** `sdl2_lib` was always a
   dependency, so linking needed SDL2, SDL2_image and SDL2_ttf even for
   ncurses. It is now optional, pulled in by the `sdl` feature

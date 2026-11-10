@@ -54,7 +54,9 @@ jobs:
       - name: Build
         run: |
           mkdir -p out
-          docker run --rm -v "$PWD":/src -w /src/arcane_fortune -e CARGO_TARGET_DIR=/src/out/target rust:1-alpine3.22 sh -c '
+          # no git in the container: the version line's commit comes in here
+          export AF_COMMIT_ID=$(git rev-parse HEAD)
+          docker run --rm -v "$PWD":/src -w /src/arcane_fortune -e CARGO_TARGET_DIR=/src/out/target -e AF_COMMIT_ID rust:1-alpine3.22 sh -c '
             apk add --no-cache musl-dev ncurses-dev ncurses-static &&
             RUSTFLAGS="-C target-feature=+crt-static" cargo build --release &&
             cp /src/out/target/release/arcane_fortune /src/out/ && strip /src/out/arcane_fortune'

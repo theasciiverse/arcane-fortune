@@ -57,7 +57,7 @@ pub type chtype = u32;
 pub type CInt = i32;
 pub type CShort = i16;
 use crate::renderer::curses::{MEVENT, mmask_t};
-use std::os::raw::{c_int};
+use std::os::raw::{c_int, c_char};
 
 // if characters are not printing correctly verify the
 // size of wchar_t in C. compile/run in C:
@@ -78,7 +78,7 @@ extern "C" {
 	pub fn inch() -> chtype;
 	pub fn refresh() -> CInt;
 	pub fn addch(ch: chtype) -> CInt;
-	pub fn addnstr(txt: *const i8, len: CInt) -> CInt;
+	pub fn addnstr(txt: *const c_char, len: CInt) -> CInt;
 	pub fn getcurx(w: WINDOW) -> CInt;
 	pub fn getcury(w: WINDOW) -> CInt;
 	pub fn clear() -> CInt;
@@ -95,7 +95,7 @@ extern "C" {
 	pub fn set_escdelay(t: CInt) -> CInt;
 	pub fn can_change_color() -> bool;
 	pub fn endwin() -> CInt;
-	pub fn addstr(txt: *const i8) -> CInt;
+	pub fn addstr(txt: *const c_char) -> CInt;
 	pub fn attron(attr: chtype) -> CInt;
 	pub fn attroff(attr: chtype) -> CInt;
 	
@@ -116,7 +116,7 @@ extern "C" {
 	pub static COLOR_PAIRS: CInt;
 	pub static stdscr: WINDOW;
 
-	pub fn setlocale(t: i32, locale: *const i8) -> *mut i8;
+	pub fn setlocale(t: i32, locale: *const c_char) -> *mut c_char;
 }
 
 #[cfg(target_os = "macos")]
@@ -126,7 +126,7 @@ extern "C" {
 	pub fn inch() -> chtype;
 	pub fn refresh() -> CInt;
 	pub fn addch(ch: chtype) -> CInt;
-	pub fn addnstr(txt: *const i8, len: CInt) -> CInt;
+	pub fn addnstr(txt: *const c_char, len: CInt) -> CInt;
 	pub fn getcurx(w: WINDOW) -> CInt;
 	pub fn getcury(w: WINDOW) -> CInt;
 	pub fn clear() -> CInt;
@@ -143,7 +143,7 @@ extern "C" {
 	pub fn set_escdelay(t: CInt) -> CInt;
 	pub fn can_change_color() -> bool;
 	pub fn endwin() -> CInt;
-	pub fn addstr(txt: *const i8) -> CInt;
+	pub fn addstr(txt: *const c_char) -> CInt;
 	pub fn attron(attr: chtype) -> CInt;
 	pub fn attroff(attr: chtype) -> CInt;
 	
@@ -164,7 +164,7 @@ extern "C" {
 	pub static COLOR_PAIRS: CInt;
 	pub static stdscr: WINDOW;
 
-	pub fn setlocale(t: i32, locale: *const i8) -> *mut i8;
+	pub fn setlocale(t: i32, locale: *const c_char) -> *mut c_char;
 }
 
 pub fn acs_map() -> *const chtype {
@@ -173,5 +173,5 @@ pub fn acs_map() -> *const chtype {
 
 //////////////
 pub const LC_ALL: i32 = 0;
-pub const LC_VARS: i8 = 0;
+pub const LC_VARS: c_char = 0;
 

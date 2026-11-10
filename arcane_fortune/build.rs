@@ -2,6 +2,17 @@ use std::env::var;
 use std::process::Command;
 
 fn main() {
+	// the commit shown in the version line: AF_COMMIT_ID when the build sets
+	// it, else git's HEAD, else "unknown" (it was read from
+	// .git/refs/heads/v0.4.0, which only a clone with that branch checked out has)
+	let commit = std::env::var("AF_COMMIT_ID").ok().filter(|c| !c.is_empty()).or_else(|| {
+		Command::new("git").args(&["rev-parse", "HEAD"]).output().ok()
+			.filter(|o| o.status.success())
+			.map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+	}).unwrap_or_else(|| "unknown".to_string());
+	println!("cargo:rustc-env=AF_COMMIT_ID={}", commit);
+	println!("cargo:rerun-if-env-changed=AF_COMMIT_ID");
+	
 	//println!(r"cargo:rustc-link-search=link_dir/windows");
 	//println!(r"cargo:rustc-link-search=link_dir/linux_musl");
 	
