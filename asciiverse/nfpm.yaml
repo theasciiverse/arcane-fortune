@@ -1,0 +1,48 @@
+# System packages (.deb, .rpm, .apk, Arch) for Arcane Fortune, built by nfpm
+# from the same static Linux build as the av archive. The release workflow
+# sets VERSION, RELEASE (our packaging release) and ARCH (amd64 or arm64),
+# and puts the av layout in stage/.
+#
+# The game reads config/ and nn/ beside its binary, so the layout is
+# installed whole in /usr/lib/arcane-fortune, with /usr/bin/arcane-fortune a
+# link to the binary; saved games go to the player's state folder. No
+# .desktop file on purpose: av is the one place titles are started from.
+name: arcane-fortune
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+release: ${RELEASE}
+section: games
+priority: optional
+maintainer: Asciiverse <packages@asciiverse.sh>
+vendor: Asciiverse
+homepage: https://github.com/theasciiverse/arcane-fortune
+license: AGPL-3.0-or-later AND CC-BY-SA-4.0
+description: |
+  Grand-strategy empire building in the terminal.
+  Found a civilization, zone its cities, raise noble houses and armies,
+  trade, threaten and make treaties with rival empires on a random world
+  or a map of the Earth. By Darin Straus, terminal edition packaged by
+  Asciiverse.
+contents:
+  - src: stage/arcane_fortune
+    dst: /usr/lib/arcane-fortune/arcane_fortune
+    file_info: { mode: 0755 }
+  - src: stage/config
+    dst: /usr/lib/arcane-fortune/config
+    type: tree
+  - src: stage/nn
+    dst: /usr/lib/arcane-fortune/nn
+    type: tree
+  - src: /usr/lib/arcane-fortune/arcane_fortune
+    dst: /usr/bin/arcane-fortune
+    type: symlink
+  - src: license.txt
+    dst: /usr/share/doc/arcane-fortune/copyright
+    file_info: { mode: 0644 }
+  - src: readme.txt
+    dst: /usr/share/doc/arcane-fortune/readme.txt
+    file_info: { mode: 0644 }
+  - src: PATCHES.md
+    dst: /usr/share/doc/arcane-fortune/PATCHES.md
+    file_info: { mode: 0644 }

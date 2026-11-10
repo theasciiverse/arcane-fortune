@@ -1,3 +1,13 @@
+Play it with Asciiverse. With av (https://asciiverse.sh), the Asciiverse
+client:
+
+    av install arcane-fortune
+    av play arcane-fortune
+
+Saved games go to ~/.local/state/arcane-fortune (Application Support on
+macOS). The original readme follows.
+
+--------------------------------------------------
 
          ▒▒▒
        ▒▒  ▒▒▒

@@ -1,0 +1,141 @@
+# Arcane Fortune: release
+# Asciiverse release workflow (tag v* or run by hand with a tag)
+# Builds Arcane Fortune's terminal edition for the Asciiverse catalog and as
+# system packages.
+#
+# For av: one archive per target, named <id>-<target>.tar.gz, plus a
+# SHA256SUMS file, attached to a GitHub release (hub/catalog/SCHEMA.md,
+# release.source = "github"). Each archive holds the program with config/
+# and nn/ beside it, where it finds them. nn/ (the neural network behind the
+# embassy talk) is not in git; asciiverse/fetch-nn.sh takes it from
+# upstream's v0.4.0 release zip, checked by its sha256.
+# For everyone else: .deb, .rpm, .apk and Arch packages from the same static
+# Linux binaries, made by nfpm (asciiverse/nfpm.yaml).
+#
+# Tags look like v0.4.0-av.1: upstream's version, then our packaging
+# release. Built without the sdl feature, so it draws with ncurses. Linux
+# builds run in Alpine, so the binaries are static (ncursesw, musl); macOS
+# uses its own ncurses. No Windows: upstream's Windows edition draws with
+# PDCurses on SDL in a window of its own, not in a terminal.
+
+name: release
+
+on:
+  push:
+    tags: ["v*-av.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "existing tag to build and release"
+        required: true
+
+env:
+  ID: arcane-fortune
+  BIN: arcane_fortune
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-musl, runner: ubuntu-24.04, arch: amd64 }
+          - { target: aarch64-unknown-linux-musl, runner: ubuntu-24.04-arm, arch: arm64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Build
+        run: |
+          mkdir -p out
+          docker run --rm -v "$PWD":/src -w /src/arcane_fortune -e CARGO_TARGET_DIR=/src/out/target rust:1-alpine3.22 sh -c '
+            apk add --no-cache musl-dev ncurses-dev ncurses-static &&
+            RUSTFLAGS="-C target-feature=+crt-static" cargo build --release &&
+            cp /src/out/target/release/arcane_fortune /src/out/ && strip /src/out/arcane_fortune'
+          sudo chown -R "$(id -u):$(id -g)" out
+          file out/$BIN
+
+      - name: Package for av
+        run: |
+          rm -rf stage && mkdir -p stage dist
+          cp out/$BIN license.txt readme.txt PATCHES.md stage/
+          cp -r arcane_fortune/src/config stage/
+          sh asciiverse/fetch-nn.sh stage
+          tar -czf "dist/$ID-${{ matrix.target }}.tar.gz" -C stage .
+
+      - name: System packages
+        run: |
+          v="${TAG#v}"; export VERSION="${v%%-av.*}" RELEASE="${TAG##*-av.}" ARCH="${{ matrix.arch }}"
+          for p in deb rpm apk archlinux; do
+            docker run --rm -u "$(id -u):$(id -g)" -v "$PWD":/src -w /src \
+              -e VERSION -e RELEASE -e ARCH goreleaser/nfpm:v2.43.0 \
+              package --config asciiverse/nfpm.yaml --packager "$p" --target dist/
+          done
+          ls -l dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist/*
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [x86_64-apple-darwin, aarch64-apple-darwin]
+    runs-on: macos-15
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Build
+        working-directory: arcane_fortune
+        run: |
+          rustup target add ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
+          strip target/${{ matrix.target }}/release/$BIN
+          file target/${{ matrix.target }}/release/$BIN
+
+      - name: Package
+        run: |
+          rm -rf stage && mkdir -p stage dist
+          cp arcane_fortune/target/${{ matrix.target }}/release/$BIN license.txt readme.txt PATCHES.md stage/
+          cp -r arcane_fortune/src/config stage/
+          sh asciiverse/fetch-nn.sh stage
+          tar -czf "dist/$ID-${{ matrix.target }}.tar.gz" -C stage .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist/*
+
+  release:
+    needs: [linux, macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum * > SHA256SUMS && cat SHA256SUMS
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" -R "$GITHUB_REPOSITORY" --title "Arcane Fortune $TAG" \
+                 --notes "Arcane Fortune ${TAG%%-av.*} from github.com/cody2007/arcane_fortune, terminal edition built for the Asciiverse catalog, with .deb, .rpm, .apk and Arch packages. Changes from upstream: see PATCHES.md."
+          gh release upload "$TAG" dist/* -R "$GITHUB_REPOSITORY" --clobber
